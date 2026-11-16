@@ -1,13 +1,13 @@
 package logico;
 
 public class Servicio {
-	
+
 	private String codigo;
 	private String nombre;
 	private String descripcion;
 	private float precio;
 	private boolean estado;
-	
+
 	public Servicio(String codigo, String nombre, String descripcion, float precio, boolean estado) {
 		super();
 		this.codigo = codigo;
@@ -56,27 +56,17 @@ public class Servicio {
 	public void setEstado(boolean estado) {
 		this.estado = estado;
 	}
-	
-	
-	public void activarServicio() {
-		
-		
-	}
-	
-	public void desactivarServicio() {
-		
-		
-	}
-	
-	
-	public float consultarPrecio() {
-		
-		
-		return precio;
-	}
-	
-	
-	
-	
-}
 
+	public void activarServicio() {
+		this.estado = true;
+	}
+
+	public void desactivarServicio() {
+		this.estado = false;
+	}
+
+	public float consultarPrecio() {
+		return this.precio;
+	}
+
+}
