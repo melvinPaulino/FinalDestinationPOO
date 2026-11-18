@@ -4,17 +4,17 @@ import java.util.ArrayList;
 
 public class Altice {
 
-	private ArrayList<Cliente> losClientes;
+	private ArrayList<Persona> lasPersonas;
 	private ArrayList<Factura> lasFacturas;
 
-	private static int generadorIdCliente = 1;
+	private static int generadorIdpersona= 1;
 	private static int generadorIdFactura = 1;
 
 	private static Altice instancia = null;
 
 	private Altice() {
 		super();
-		this.losClientes = new ArrayList<>();
+		this.lasPersonas = new ArrayList<>();
 		this.lasFacturas = new ArrayList<>();
 	}
 
@@ -29,12 +29,12 @@ public class Altice {
 		Altice.instancia = instancia;
 	}
 
-	public ArrayList<Cliente> getLosClientes() {
-		return losClientes;
+	public ArrayList<Persona> getLosClientes() {
+		return lasPersonas;
 	}
 
 	public void setLosClientes(ArrayList<Cliente> losClientes) {
-		this.losClientes = losClientes;
+		this.lasPersonas = lasPersonas;
 	}
 
 	public ArrayList<Factura> getLasFacturas() {
@@ -46,11 +46,11 @@ public class Altice {
 	}
 
 	public static int getGeneradorIdCliente() {
-		return generadorIdCliente;
+		return generadorIdpersona;
 	}
 
 	public static void setGeneradorIdCliente(int generadorIdCliente) {
-		Altice.generadorIdCliente = generadorIdCliente;
+		Altice.generadorIdpersona = generadorIdCliente;
 	}
 
 	public static int getGeneradorIdFactura() {
