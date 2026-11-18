@@ -1,6 +1,7 @@
 package logico;
 
 import java.util.Date;
+import java.util.ArrayList;
 
 public class Factura {
 
@@ -16,24 +17,31 @@ public class Factura {
 	private float itbis;
 	private float total;
 	private Cliente cliente;
+	private ArrayList<Contrato>constratos;
 
-	public Factura(String codigo, Cliente cliente, Date fecha, Date fechaVencimiento, Date periodoInicio,
-			Date periodoFin) {
+	public Factura(String codigo, Date fecha, Date fechaVencimiento, Date periodoInicio, Date periodoFin,
+			float subtotal, float descuento, float itbis, float total, Cliente cliente,
+			ArrayList<Contrato> constratos) {
 		super();
 		this.codigo = codigo;
-		this.cliente = cliente;
 		this.fecha = fecha;
 		this.fechaVencimiento = fechaVencimiento;
 		this.periodoInicio = periodoInicio;
 		this.periodoFin = periodoFin;
-		this.subtotal = 0;
-		this.descuento = 0;
-		this.itbis = 0;
-		this.total = 0;
+		this.subtotal = subtotal;
+		this.descuento = descuento;
+		this.itbis = itbis;
+		this.total = total;
+		this.cliente = cliente;
+		this.constratos = constratos;
 	}
 
 	public String getCodigo() {
 		return codigo;
+	}
+
+	public void setCodigo(String codigo) {
+		this.codigo = codigo;
 	}
 
 	public Date getFecha() {
@@ -107,5 +115,18 @@ public class Factura {
 	public void setCliente(Cliente cliente) {
 		this.cliente = cliente;
 	}
+
+	public ArrayList<Contrato> getConstratos() {
+		return constratos;
+	}
+
+	public void setConstratos(ArrayList<Contrato> constratos) {
+		this.constratos = constratos;
+	}
+
+	public static float getTasaItbis() {
+		return TASA_ITBIS;
+	} 
+	
 
 }
