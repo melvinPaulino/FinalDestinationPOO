@@ -8,6 +8,7 @@ public class Cliente extends Persona {
 	private Date fechaRegistro;
 	private boolean activo;
 	private ArrayList<Factura> lasFacturas;
+	private ArrayList<Contrato> losContratos;
 
 	public Cliente(String cedula, String nombre, String apellido, String telefono, String correo, String direccion,
 			String codigo, Date fechaRegistro) {
@@ -16,6 +17,7 @@ public class Cliente extends Persona {
 		this.fechaRegistro = fechaRegistro;
 		this.activo = true;
 		this.lasFacturas = new ArrayList<>();
+		this.losContratos = new ArrayList<>();
 	}
 
 	public String getCodigo() {
@@ -48,6 +50,14 @@ public class Cliente extends Persona {
 
 	public void setLasFacturas(ArrayList<Factura> lasFacturas) {
 		this.lasFacturas = lasFacturas;
+	}
+
+	public ArrayList<Contrato> getLosContratos() {
+		return losContratos;
+	}
+
+	public void setLosContratos(ArrayList<Contrato> losContratos) {
+		this.losContratos = losContratos;
 	}
 
 }
