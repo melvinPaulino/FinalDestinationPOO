@@ -32,5 +32,11 @@ public class Administrativo extends Empleado {
 	public void setBonoMensual(float bonoMensual) {
 		this.bonoMensual = bonoMensual;
 	}
+
+	//Decir que es administrador, para que pueda acceder a la interfaz de administrador
+	@Override
+	public void setEsAdmin(boolean esAdmin) {
+    this.esAdmin = esAdmin;
+}
  
 }

@@ -10,6 +10,7 @@ public abstract class Empleado extends Persona {
 	private float salarioBase;
 	private Date fechaIngreso;
 	private boolean activo;
+	protected boolean esAdmin;
  
 	public Empleado(String cedula, String nombre, String apellido, String telefono, String correo, String direccion,
 			String codigo, float salarioBase, Date fechaIngreso) {
@@ -18,6 +19,7 @@ public abstract class Empleado extends Persona {
 		this.salarioBase = salarioBase;
 		this.fechaIngreso = fechaIngreso;
 		this.activo = true;
+		this.esAdmin = false;
 	}
  
 	public String getCodigo() {
@@ -50,6 +52,14 @@ public abstract class Empleado extends Persona {
  
 	public void setActivo(boolean activo) {
 		this.activo = activo;
+	}
+
+	public boolean isEsAdmin() {
+		return esAdmin;
+	}
+
+	public void setEsAdmin(boolean esAdmin) {
+		this.esAdmin = esAdmin;
 	}
  
 }
