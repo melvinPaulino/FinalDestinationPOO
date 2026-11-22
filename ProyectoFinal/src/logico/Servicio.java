@@ -1,6 +1,10 @@
 package logico;
 
-public class Servicio {
+import java.io.Serializable;
+
+public class Servicio implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private String codigo;
 	private String nombre;

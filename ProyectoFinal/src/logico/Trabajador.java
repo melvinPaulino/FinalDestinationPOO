@@ -3,6 +3,8 @@ package logico;
 import java.util.Date;
  
 public class Trabajador extends Empleado {
+
+	private static final long serialVersionUID = 1L;
  
 	private String especialidad;
 	private float horasExtra;

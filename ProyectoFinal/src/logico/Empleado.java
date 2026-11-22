@@ -3,6 +3,8 @@ package logico;
 import java.util.Date;
  
 public abstract class Empleado extends Persona {
+
+	private static final long serialVersionUID = 1L;
  
 	private String codigo;
 	private float salarioBase;
