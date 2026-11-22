@@ -27,7 +27,10 @@ public class Principal extends JFrame {
 	private JPanel contentPane;
 	private Usuario sesion;
 
-	// Constructor sin argumentos: permite abrir la ventana en el editor visual (WindowBuilder)
+	public static void main(String[] args) {
+		Login.main(args);
+	}
+	
 	public Principal() {
 		this(null);
 	}
