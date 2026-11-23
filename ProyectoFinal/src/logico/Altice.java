@@ -132,7 +132,7 @@ public class Altice implements Serializable {
 
 		for (Factura factura : lasFacturas) {
 
-			if (!factura.isPagada()) {
+			if (!factura.isPagada() && !factura.isAnulada()) {
 				pendientes.add(factura);
 			}
 		}
@@ -223,6 +223,9 @@ public class Altice implements Serializable {
 			// Para asegurarnos de que esto no pase:
 			if (leida.losServicios == null) {
 				leida.losServicios = new ArrayList<>();
+			}
+			if (leida.losPlanes == null) {
+				leida.losPlanes = new ArrayList<>();
 			}
 			generadorIdpersona = entrada.readInt();
 			generadorIdFactura = entrada.readInt();
@@ -905,7 +908,7 @@ public class Altice implements Serializable {
 
 		for (Factura factura : cliente.getLasFacturas()) {
 
-			if (!factura.isPagada() && factura.getFechaVencimiento() != null
+			if (!factura.isPagada() && !factura.isAnulada() && factura.getFechaVencimiento() != null
 					&& factura.getFechaVencimiento().before(fechaProceso)) {
 
 				vencidas.add(factura);
@@ -921,7 +924,7 @@ public class Altice implements Serializable {
 
 		for (Factura factura : cliente.getLasFacturas()) {
 
-			if (!factura.isPagada()) {
+			if (!factura.isPagada() && !factura.isAnulada()) {
 				deudaTotal += factura.getTotal();
 			}
 		}
@@ -956,6 +959,511 @@ public class Altice implements Serializable {
 				System.out.println("Deuda acumulada: RD$" + deuda);
 			}
 		}
+	}
+
+
+	// -----------------------------Primer inicio de sesion-----------------------------
+
+	// Crea la cuenta del primer administrador con el usuario y la clave ingresados en el login.
+	// Devuelve null si ya existe un administrador o si los datos no son validos.
+	public Administrativo registrarAdministradorInicial(String usuario, String clave) {
+		if (existeAdministrador() || usuario == null || usuario.isBlank() || clave == null || clave.isEmpty()) {
+			return null;
+		}
+
+		// La cedula y los demas datos todavia no se conocen: se completan luego desde el sistema
+		Administrativo admin = new Administrativo("SIN-CEDULA", "Administrador", "", "", "", "",
+				"ADM-" + generadorIdpersona, 0, new Date(), "Administracion", 0);
+		admin.setUsuario(usuario);
+		admin.setClave(clave);
+		admin.setEsAdmin(true);
+
+		if (!registrarPersona(admin)) {
+			return null;
+		}
+		generadorIdpersona++;
+		return admin;
+	}
+
+	// -----------------------------CRUD Contratos-----------------------------
+
+	// Registra un contrato nuevo (cliente + plan + comercial) con estado ACTIVO.
+	// Devuelve el contrato creado, o null si algun dato no es valido.
+	public Contrato registrarContrato(String identificadorCliente, String codigoPlan, String identificadorComercial,
+			int diaCorte) {
+
+		Cliente cliente = buscarCliente(identificadorCliente);
+		Plan plan = buscarPlan(codigoPlan);
+		Empleado comercial = buscarEmpleado(identificadorComercial);
+
+		if (cliente == null || !cliente.isActivo()) {
+			return null;
+		}
+
+		// El plan debe estar activo y tener al menos un servicio
+		if (plan == null || !plan.isActivo() || plan.getLosServicios().isEmpty()) {
+			return null;
+		}
+
+		// El contrato lo vende un comercial activo
+		if (!(comercial instanceof Comercial) || !comercial.isActivo()) {
+			return null;
+		}
+
+		// Se usa maximo el dia 28 para que el corte exista en todos los meses
+		if (diaCorte < 1 || diaCorte > 28) {
+			return null;
+		}
+
+		// Un cliente no puede tener dos contratos vigentes con el mismo plan
+		for (Contrato existente : cliente.getLosContratos()) {
+			if (existente.getPlan() == plan && !existente.estaCancelado()) {
+				return null;
+			}
+		}
+
+		// El cargo mensual queda fijado con el precio del plan al momento de firmar
+		Contrato contrato = new Contrato(generarIdContrato(), cliente, plan, (Comercial) comercial, new Date(),
+				Contrato.EstadoContrato.ACTIVO.name(), plan.calcularPrecio(), diaCorte, null);
+
+		cliente.getLosContratos().add(contrato);
+		return contrato;
+	}
+
+	// Los contratos viven dentro de su cliente: el id siguiente se calcula con el mayor existente
+	private String generarIdContrato() {
+		int mayor = 0;
+
+		for (Contrato contrato : obtenerContratos()) {
+			String id = contrato.getIdContrato();
+
+			if (id != null && id.startsWith("CON-")) {
+				try {
+					mayor = Math.max(mayor, Integer.parseInt(id.substring(4)));
+				} catch (NumberFormatException e) {
+					// Un id con otro formato se ignora
+				}
+			}
+		}
+
+		return "CON-" + (mayor + 1);
+	}
+
+	// Busca un contrato por su id en todos los clientes.
+	public Contrato buscarContrato(String idContrato) {
+		if (idContrato == null || idContrato.isBlank()) {
+			return null;
+		}
+
+		for (Contrato contrato : obtenerContratos()) {
+			if (contrato.getIdContrato().equalsIgnoreCase(idContrato.trim())) {
+				return contrato;
+			}
+		}
+
+		return null;
+	}
+
+	// Devuelve todos los contratos del sistema.
+	public ArrayList<Contrato> obtenerContratos() {
+		ArrayList<Contrato> contratos = new ArrayList<>();
+
+		for (Cliente cliente : obtenerClientes()) {
+			contratos.addAll(cliente.getLosContratos());
+		}
+
+		return contratos;
+	}
+
+	// Devuelve los contratos que estan en el estado indicado.
+	public ArrayList<Contrato> obtenerContratosPorEstado(Contrato.EstadoContrato estado) {
+		ArrayList<Contrato> resultado = new ArrayList<>();
+
+		for (Contrato contrato : obtenerContratos()) {
+			if (contrato.getEstadoContrato().equalsIgnoreCase(estado.name())) {
+				resultado.add(contrato);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Devuelve los contratos vendidos por un comercial.
+	public ArrayList<Contrato> obtenerContratosComercial(String identificadorComercial) {
+		ArrayList<Contrato> resultado = new ArrayList<>();
+		Empleado comercial = buscarEmpleado(identificadorComercial);
+
+		if (comercial == null) {
+			return resultado;
+		}
+
+		for (Contrato contrato : obtenerContratos()) {
+			if (contrato.getComercialAsignado() == comercial) {
+				resultado.add(contrato);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Devuelve los contratos que usan un plan.
+	public ArrayList<Contrato> obtenerContratosPlan(String codigoPlan) {
+		ArrayList<Contrato> resultado = new ArrayList<>();
+		Plan plan = buscarPlan(codigoPlan);
+
+		if (plan == null) {
+			return resultado;
+		}
+
+		for (Contrato contrato : obtenerContratos()) {
+			if (contrato.getPlan() == plan) {
+				resultado.add(contrato);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Devuelve los contratos no cancelados cuyo plan incluye un servicio.
+	public ArrayList<Contrato> obtenerContratosServicio(String codigoServicio) {
+		ArrayList<Contrato> resultado = new ArrayList<>();
+		Servicio servicio = buscarServicio(codigoServicio);
+
+		if (servicio == null) {
+			return resultado;
+		}
+
+		for (Contrato contrato : obtenerContratos()) {
+			if (!contrato.estaCancelado() && contrato.getPlan().getLosServicios().contains(servicio)) {
+				resultado.add(contrato);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Devuelve los servicios que incluye el plan de un contrato.
+	public ArrayList<Servicio> obtenerServiciosContrato(String idContrato) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null) {
+			return new ArrayList<>();
+		}
+
+		return new ArrayList<>(contrato.getPlan().getLosServicios());
+	}
+
+	// Devuelve los servicios que un cliente tiene contratados (contratos activos, sin repetir).
+	public ArrayList<Servicio> obtenerServiciosCliente(String identificador) {
+		ArrayList<Servicio> servicios = new ArrayList<>();
+
+		for (Contrato contrato : obtenerContratosCliente(identificador)) {
+			if (contrato.estaActivo()) {
+				for (Servicio servicio : contrato.getPlan().getLosServicios()) {
+					if (!servicios.contains(servicio)) {
+						servicios.add(servicio);
+					}
+				}
+			}
+		}
+
+		return servicios;
+	}
+
+	// Modifica el plan, el comercial y el dia de corte de un contrato que no este cancelado.
+	// El cargo mensual solo se recalcula si el plan cambia.
+	public boolean modificarContrato(String idContrato, String codigoPlan, String identificadorComercial,
+			int diaCorte) {
+
+		Contrato contrato = buscarContrato(idContrato);
+		Plan plan = buscarPlan(codigoPlan);
+		Empleado comercial = buscarEmpleado(identificadorComercial);
+
+		if (contrato == null || contrato.estaCancelado()) {
+			return false;
+		}
+
+		// Un plan inactivo solo es valido si el contrato ya lo tenia
+		if (plan == null || plan.getLosServicios().isEmpty() || (!plan.isActivo() && plan != contrato.getPlan())) {
+			return false;
+		}
+
+		// Un comercial inactivo solo es valido si el contrato ya lo tenia
+		if (!(comercial instanceof Comercial)
+				|| (!comercial.isActivo() && comercial != contrato.getComercialAsignado())) {
+			return false;
+		}
+
+		if (diaCorte < 1 || diaCorte > 28) {
+			return false;
+		}
+
+		for (Contrato otro : contrato.getCliente().getLosContratos()) {
+			if (otro != contrato && otro.getPlan() == plan && !otro.estaCancelado()) {
+				return false;
+			}
+		}
+
+		if (plan != contrato.getPlan()) {
+			contrato.setPlan(plan);
+			contrato.setCargoFijoMensual(plan.calcularPrecio());
+		}
+
+		contrato.setComercialAsignado((Comercial) comercial);
+		contrato.setDiaCorte(diaCorte);
+		return true;
+	}
+
+	// Suspende un contrato activo.
+	public boolean suspenderContrato(String idContrato) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null || !contrato.estaActivo()) {
+			return false;
+		}
+
+		contrato.suspenderContrato();
+		return true;
+	}
+
+	// Reactiva un contrato suspendido, siempre que el cliente siga activo y no tenga facturas vencidas.
+	public boolean reactivarContrato(String idContrato) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null || !contrato.estaSuspendido() || !contrato.getCliente().isActivo()) {
+			return false;
+		}
+
+		if (!obtenerFacturasVencidasCliente(contrato.getCliente(), new Date()).isEmpty()) {
+			return false;
+		}
+
+		contrato.reactivarContrato();
+		return true;
+	}
+
+	// Cancela un contrato (no se borra: queda en el historial del cliente).
+	public boolean cancelarContrato(String idContrato) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null || contrato.estaCancelado()) {
+			return false;
+		}
+
+		contrato.cancelarContrato();
+		return true;
+	}
+
+	// Elimina un contrato solo si todavia no tiene ninguna factura.
+	public boolean eliminarContrato(String idContrato) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null) {
+			return false;
+		}
+
+		for (Factura factura : lasFacturas) {
+			if (factura.getContratos().contains(contrato)) {
+				return false;
+			}
+		}
+
+		return contrato.getCliente().getLosContratos().remove(contrato);
+	}
+
+	// -----------------------------CRUD Facturas-----------------------------
+
+	// Crea la factura de un contrato activo para el mes que termina en fechaProceso.
+	// Devuelve null si el contrato no se puede facturar o si ese periodo ya fue facturado.
+	public Factura facturarContrato(String idContrato, Date fechaProceso, int diasVencimiento) {
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null || fechaProceso == null || diasVencimiento < 0) {
+			return null;
+		}
+
+		if (!contrato.estaActivo() || !contrato.getCliente().isActivo()) {
+			return null;
+		}
+
+		Calendar fin = Calendar.getInstance();
+		fin.setTime(fechaProceso);
+		fin.set(Calendar.HOUR_OF_DAY, 0);
+		fin.set(Calendar.MINUTE, 0);
+		fin.set(Calendar.SECOND, 0);
+		fin.set(Calendar.MILLISECOND, 0);
+
+		Calendar inicio = (Calendar) fin.clone();
+		inicio.add(Calendar.MONTH, -1);
+		inicio.add(Calendar.DAY_OF_MONTH, 1);
+
+		// Evita facturar dos veces el mismo contrato en el mismo periodo
+		for (Factura existente : lasFacturas) {
+			if (!existente.isAnulada() && existente.getContratos().contains(contrato)
+					&& existente.getPeriodoInicio().equals(inicio.getTime())
+					&& existente.getPeriodoFin().equals(fin.getTime())) {
+				return null;
+			}
+		}
+
+		Calendar vencimiento = (Calendar) fin.clone();
+		vencimiento.add(Calendar.DAY_OF_MONTH, diasVencimiento);
+
+		ArrayList<Contrato> contratosFactura = new ArrayList<>();
+		contratosFactura.add(contrato);
+
+		Factura factura = new Factura("FAC-" + generadorIdFactura++, fechaProceso, vencimiento.getTime(),
+				inicio.getTime(), fin.getTime(), 0, 0, 0, 0, contrato.getCliente(), false, null, contratosFactura);
+
+		factura.calcularTotal();
+
+		lasFacturas.add(factura);
+		contrato.getCliente().getLasFacturas().add(factura);
+		return factura;
+	}
+
+	// Busca una factura por su codigo.
+	public Factura buscarFactura(String codigo) {
+		if (codigo == null || codigo.isBlank()) {
+			return null;
+		}
+
+		for (Factura factura : lasFacturas) {
+			if (factura.getCodigo().equalsIgnoreCase(codigo.trim())) {
+				return factura;
+			}
+		}
+
+		return null;
+	}
+
+	// Devuelve todas las facturas del sistema (pagadas, pendientes y anuladas).
+	public ArrayList<Factura> obtenerFacturas() {
+		return new ArrayList<>(lasFacturas);
+	}
+
+	public ArrayList<Factura> obtenerFacturasPagadas() {
+		ArrayList<Factura> pagadas = new ArrayList<>();
+
+		for (Factura factura : lasFacturas) {
+			if (factura.isPagada()) {
+				pagadas.add(factura);
+			}
+		}
+
+		return pagadas;
+	}
+
+	public ArrayList<Factura> obtenerFacturasAnuladas() {
+		ArrayList<Factura> anuladas = new ArrayList<>();
+
+		for (Factura factura : lasFacturas) {
+			if (factura.isAnulada()) {
+				anuladas.add(factura);
+			}
+		}
+
+		return anuladas;
+	}
+
+	// Facturas no pagadas ni anuladas cuyo vencimiento ya paso.
+	public ArrayList<Factura> obtenerFacturasVencidas(Date fechaProceso) {
+		ArrayList<Factura> vencidas = new ArrayList<>();
+
+		for (Factura factura : lasFacturas) {
+			if (!factura.isPagada() && !factura.isAnulada() && factura.getFechaVencimiento() != null
+					&& factura.getFechaVencimiento().before(fechaProceso)) {
+				vencidas.add(factura);
+			}
+		}
+
+		return vencidas;
+	}
+
+	// Facturas emitidas entre dos fechas (ambas incluidas). Sirve para los reportes por periodo.
+	public ArrayList<Factura> obtenerFacturasPorPeriodo(Date desde, Date hasta) {
+		ArrayList<Factura> resultado = new ArrayList<>();
+
+		if (desde == null || hasta == null) {
+			return resultado;
+		}
+
+		for (Factura factura : lasFacturas) {
+			if (!factura.getFecha().before(desde) && !factura.getFecha().after(hasta)) {
+				resultado.add(factura);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Devuelve las facturas de un contrato.
+	public ArrayList<Factura> obtenerFacturasContrato(String idContrato) {
+		ArrayList<Factura> resultado = new ArrayList<>();
+		Contrato contrato = buscarContrato(idContrato);
+
+		if (contrato == null) {
+			return resultado;
+		}
+
+		for (Factura factura : lasFacturas) {
+			if (factura.getContratos().contains(contrato)) {
+				resultado.add(factura);
+			}
+		}
+
+		return resultado;
+	}
+
+	// Marca una factura como pagada (no se puede pagar una factura anulada ni pagar dos veces).
+	public boolean registrarPagoFactura(String codigo) {
+		Factura factura = buscarFactura(codigo);
+
+		if (factura == null || factura.isPagada() || factura.isAnulada()) {
+			return false;
+		}
+
+		factura.registrarPago();
+		return true;
+	}
+
+	// Cambia la fecha de vencimiento y el descuento de una factura que siga pendiente.
+	// El subtotal no cambia: solo se recalculan el ITBIS y el total.
+	public boolean modificarFactura(String codigo, Date nuevoVencimiento, float descuento) {
+		Factura factura = buscarFactura(codigo);
+
+		if (factura == null || factura.isPagada() || factura.isAnulada()) {
+			return false;
+		}
+
+		if (nuevoVencimiento == null || nuevoVencimiento.before(factura.getFecha())) {
+			return false;
+		}
+
+		if (descuento < 0 || descuento > factura.getSubtotal()) {
+			return false;
+		}
+
+		float baseImponible = factura.getSubtotal() - descuento;
+		float itbis = baseImponible * Factura.TASA_ITBIS;
+
+		factura.setFechaVencimiento(nuevoVencimiento);
+		factura.setDescuento(descuento);
+		factura.setItbis(itbis);
+		factura.setTotal(baseImponible + itbis);
+		return true;
+	}
+
+	// Anula una factura que no este pagada (no se borra: queda en el historial).
+	public boolean anularFactura(String codigo) {
+		Factura factura = buscarFactura(codigo);
+
+		if (factura == null || factura.isPagada() || factura.isAnulada()) {
+			return false;
+		}
+
+		factura.anular();
+		return true;
 	}
 
 }

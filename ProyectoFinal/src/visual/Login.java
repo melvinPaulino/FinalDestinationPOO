@@ -25,7 +25,9 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 import logico.Altice;
-import logico.Usuario;
+import logico.Comercial;
+import logico.Empleado;
+import logico.Persona;
 
 public class Login extends JFrame {
 
@@ -52,7 +54,13 @@ public class Login extends JFrame {
 	private JCheckBox chkMostrar;
 	private BotonRedondeado btnIniciar;
 	private char echoOriginal;
-	private Usuario.Rol rolSeleccionado = Usuario.Rol.ADMIN;
+	private Rol rolSeleccionado = Rol.ADMIN;
+
+	// Pestana elegida en el login (solo controla lo que se muestra, no es un dato del sistema)
+	private enum Rol {
+		ADMIN,
+		COMERCIAL
+	}
 
 	/**
 	 * Launch the application.
@@ -97,12 +105,12 @@ public class Login extends JFrame {
 		// ---- Las dos divisiones: Admin y Comercial ----
 		btnAdmin = new PestanaBoton("Admin");
 		btnAdmin.setBounds(157, 250, 213, 44);
-		btnAdmin.addActionListener(e -> cambiarRol(Usuario.Rol.ADMIN));
+		btnAdmin.addActionListener(e -> cambiarRol(Rol.ADMIN));
 		contentPane.add(btnAdmin);
 
 		btnComercial = new PestanaBoton("Comercial");
 		btnComercial.setBounds(370, 250, 213, 44);
-		btnComercial.addActionListener(e -> cambiarRol(Usuario.Rol.COMERCIAL));
+		btnComercial.addActionListener(e -> cambiarRol(Rol.COMERCIAL));
 		contentPane.add(btnComercial);
 
 		txtInfo = crearTextoAjustado(new Font("Segoe UI", Font.PLAIN, 13));
@@ -162,14 +170,14 @@ public class Login extends JFrame {
 		setLocationRelativeTo(null);
 	}
 
-	private void cambiarRol(Usuario.Rol rol) {
+	private void cambiarRol(Rol rol) {
 		rolSeleccionado = rol;
 		actualizarModo();
 	}
 
 	// Ajusta los textos segun la pestana elegida y segun si ya existe un administrador
 	private void actualizarModo() {
-		boolean esAdmin = rolSeleccionado == Usuario.Rol.ADMIN;
+		boolean esAdmin = rolSeleccionado == Rol.ADMIN;
 		boolean primerInicio = !Altice.getInstancia().existeAdministrador();
 
 		btnAdmin.setSeleccionada(esAdmin);
@@ -205,12 +213,15 @@ public class Login extends JFrame {
 		}
 
 		Altice altice = Altice.getInstancia();
-		Usuario sesion;
+		Persona sesion;
 
-		if (rolSeleccionado == Usuario.Rol.ADMIN && !altice.existeAdministrador()) {
-			// Primer inicio de sesion: estos datos se registran como la cuenta de administrador
-			sesion = new Usuario(credencial, "", clave, Usuario.Rol.ADMIN);
-			altice.registrarUsuario(sesion);
+		if (rolSeleccionado == Rol.ADMIN && !altice.existeAdministrador()) {
+			// Primer inicio de sesion: estos datos se registran como la cuenta del primer administrador
+			sesion = altice.registrarAdministradorInicial(credencial, clave);
+			if (sesion == null) {
+				mostrarError("No se pudo crear la cuenta de administrador.");
+				return;
+			}
 			try {
 				altice.guardarDatos();
 			} catch (IOException e) {
@@ -219,7 +230,7 @@ public class Login extends JFrame {
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} else {
-			sesion = altice.autenticar(credencial, clave, rolSeleccionado);
+			sesion = autenticarSegunPestana(credencial, clave);
 			if (sesion == null) {
 				mostrarError("Usuario, cédula o contraseña incorrectos.");
 				txtClave.setText("");
@@ -229,6 +240,22 @@ public class Login extends JFrame {
 
 		dispose();
 		new Principal(sesion).setVisible(true);
+	}
+
+	// Verifica las credenciales y que la cuenta tenga acceso a la pestana elegida:
+	// Admin = empleado con permisos de administrador, Comercial = empleado de tipo Comercial
+	private Persona autenticarSegunPestana(String credencial, String clave) {
+		Persona persona = Altice.getInstancia().autenticar(credencial, clave);
+		if (persona instanceof Empleado) {
+			Empleado empleado = (Empleado) persona;
+			if (rolSeleccionado == Rol.ADMIN && empleado.isEsAdmin()) {
+				return empleado;
+			}
+			if (rolSeleccionado == Rol.COMERCIAL && empleado instanceof Comercial) {
+				return empleado;
+			}
+		}
+		return null;
 	}
 
 	// Texto de solo lectura que se ajusta al ancho disponible (varias lineas) y deja ver el fondo

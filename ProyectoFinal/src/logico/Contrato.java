@@ -115,6 +115,23 @@ public void suspenderContrato() {
     this.fechaSuspension = new Date();
 }
 
+	public boolean estaSuspendido() {
+		return estadoContrato.equalsIgnoreCase(EstadoContrato.SUSPENDIDO.name());
+	}
+
+	public boolean estaCancelado() {
+		return estadoContrato.equalsIgnoreCase(EstadoContrato.CANCELADO.name());
+	}
+
+	public void reactivarContrato() {
+		this.estadoContrato = EstadoContrato.ACTIVO.name();
+		this.fechaSuspension = null;
+	}
+
+	public void cancelarContrato() {
+		this.estadoContrato = EstadoContrato.CANCELADO.name();
+	}
+
 	// Esto es para controlar el estado mediante valores definidos
 	public enum EstadoContrato {
 		ACTIVO,

@@ -18,14 +18,15 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import logico.Altice;
-import logico.Usuario;
+import logico.Empleado;
+import logico.Persona;
 
 public class Principal extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
 	private JPanel contentPane;
-	private Usuario sesion;
+	private Persona sesion;
 
 	public static void main(String[] args) {
 		Login.main(args);
@@ -38,7 +39,7 @@ public class Principal extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Principal(Usuario sesion) {
+	public Principal(Persona sesion) {
 		this.sesion = sesion;
 		setForeground(Color.WHITE);
 		setFont(null);
@@ -253,7 +254,8 @@ public class Principal extends JFrame {
 		if (sesion == null) {
 			return "";
 		}
-		return sesion.getRol() == Usuario.Rol.ADMIN ? "Administrador" : "Comercial";
+		boolean esAdmin = sesion instanceof Empleado && ((Empleado) sesion).isEsAdmin();
+		return esAdmin ? "Administrador" : "Comercial";
 	}
 
 	// Guarda los datos en el fichero. Si falla, pregunta si se quiere continuar de todos modos

@@ -23,6 +23,7 @@ public class Factura implements Serializable {
 	private boolean pagada;
 	private Date fechaPago;
 	private ArrayList<Contrato> contratos;
+	private boolean anulada;
 
 	public Factura(String codigo, Date fecha, Date fechaVencimiento, Date periodoInicio, Date periodoFin,
 			float subtotal, float descuento, float itbis, float total, Cliente cliente, boolean pagada, Date fechaPago,
@@ -148,7 +149,7 @@ public class Factura implements Serializable {
 	} 
 
 	public void registrarPago() {
-    if (!pagada) {
+    if (!pagada && !anulada) {
         this.pagada = true;
         this.fechaPago = new Date();
     }
@@ -170,4 +171,15 @@ public void calcularTotal() {
 public boolean isPagada() {
     return pagada;
 }
+
+	public boolean isAnulada() {
+		return anulada;
+	}
+
+	// Una factura pagada no se puede anular
+	public void anular() {
+		if (!pagada) {
+			this.anulada = true;
+		}
+	}
 }
