@@ -1,6 +1,7 @@
 package logico;
 
 import java.io.BufferedInputStream;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Calendar;
 
 public class Altice implements Serializable {
 
@@ -114,8 +116,7 @@ public class Altice implements Serializable {
 
 		for (Factura factura : lasFacturas) {
 
-			if (factura.getCliente() == cliente
-					&& factura.getPeriodoInicio().equals(inicio)
+			if (factura.getCliente() == cliente && factura.getPeriodoInicio().equals(inicio)
 					&& factura.getPeriodoFin().equals(fin)) {
 
 				return true;
@@ -214,8 +215,7 @@ public class Altice implements Serializable {
 			return;
 		}
 
-		try (ObjectInputStream entrada = new ObjectInputStream(
-				new BufferedInputStream(new FileInputStream(archivo)))) {
+		try (ObjectInputStream entrada = new ObjectInputStream(new BufferedInputStream(new FileInputStream(archivo)))) {
 			Altice leida = (Altice) entrada.readObject();
 
 			// Si se carga un archivo antiguo, la nueva lista podría quedar en null, porque
@@ -295,9 +295,8 @@ public class Altice implements Serializable {
 	}
 
 	// Actualiza los datos generales de un empleado.
-	public boolean modificarEmpleado(String identificador, String nombre,
-			String apellido, String telefono, String correo,
-			String direccion, float salarioBase) {
+	public boolean modificarEmpleado(String identificador, String nombre, String apellido, String telefono,
+			String correo, String direccion, float salarioBase) {
 
 		Empleado empleado = buscarEmpleado(identificador);
 
@@ -376,8 +375,7 @@ public class Altice implements Serializable {
 	public boolean asignarAdministrador(String identificador) {
 		Empleado empleado = buscarEmpleado(identificador);
 
-		if (empleado == null || !empleado.isActivo()
-				|| empleado.isEsAdmin()) {
+		if (empleado == null || !empleado.isActivo() || empleado.isEsAdmin()) {
 			return false;
 		}
 
@@ -388,8 +386,7 @@ public class Altice implements Serializable {
 	public boolean retirarAdministrador(String identificador) {
 		Empleado empleado = buscarEmpleado(identificador);
 
-		if (empleado == null || !empleado.isActivo()
-				|| !empleado.isEsAdmin()) {
+		if (empleado == null || !empleado.isActivo() || !empleado.isEsAdmin()) {
 			return false;
 		}
 
@@ -430,8 +427,7 @@ public class Altice implements Serializable {
 			if (persona instanceof Cliente) {
 				Cliente cliente = (Cliente) persona;
 
-				if (cliente.getCedula().equals(identificador)
-						|| cliente.getCodigo().equalsIgnoreCase(identificador)) {
+				if (cliente.getCedula().equals(identificador) || cliente.getCodigo().equalsIgnoreCase(identificador)) {
 					return cliente;
 				}
 			}
@@ -457,9 +453,8 @@ public class Altice implements Serializable {
 		return clientesActivos;
 	}
 
-	private boolean modificarCliente(String identificador, String nombre,
-			String apellido, String telefono, String correo,
-			String direccion) {
+	private boolean modificarCliente(String identificador, String nombre, String apellido, String telefono,
+			String correo, String direccion) {
 
 		Cliente cliente = buscarCliente(identificador);
 
@@ -521,13 +516,11 @@ public class Altice implements Serializable {
 	}
 
 	// Cambia el usuario de un cliente si no esta repetido.
-	public boolean cambiarUsuarioCliente(String identificador,
-			String nuevoUsuario) {
+	public boolean cambiarUsuarioCliente(String identificador, String nuevoUsuario) {
 
 		Cliente cliente = buscarCliente(identificador);
 
-		if (cliente == null || nuevoUsuario == null
-				|| nuevoUsuario.isBlank()) {
+		if (cliente == null || nuevoUsuario == null || nuevoUsuario.isBlank()) {
 			return false;
 		}
 
@@ -545,13 +538,11 @@ public class Altice implements Serializable {
 	}
 
 	// Cambia la contrasena de un cliente verificando la anterior.
-	public boolean cambiarClaveCliente(String identificador,
-			String claveActual, String claveNueva) {
+	public boolean cambiarClaveCliente(String identificador, String claveActual, String claveNueva) {
 
 		Cliente cliente = buscarCliente(identificador);
 
-		if (cliente == null || claveActual == null
-				|| claveNueva == null || claveNueva.isBlank()) {
+		if (cliente == null || claveActual == null || claveNueva == null || claveNueva.isBlank()) {
 			return false;
 		}
 
@@ -567,8 +558,7 @@ public class Altice implements Serializable {
 
 	// Registra un servicio si su codigo no existe previamente.
 	public boolean registrarServicio(Servicio servicio) {
-		if (servicio == null || servicio.getCodigo() == null
-				|| servicio.getCodigo().isBlank()) {
+		if (servicio == null || servicio.getCodigo() == null || servicio.getCodigo().isBlank()) {
 			return false;
 		}
 
@@ -614,13 +604,11 @@ public class Altice implements Serializable {
 	}
 
 	// Modifica los datos de un servicio existente.
-	public boolean modificarServicio(String codigo, String nombre,
-			String descripcion, float precio) {
+	public boolean modificarServicio(String codigo, String nombre, String descripcion, float precio) {
 
 		Servicio servicio = buscarServicio(codigo);
 
-		if (servicio == null || nombre == null
-				|| nombre.isBlank() || precio < 0) {
+		if (servicio == null || nombre == null || nombre.isBlank() || precio < 0) {
 			return false;
 		}
 
@@ -676,8 +664,7 @@ public class Altice implements Serializable {
 	// -----------------------------CRUD Planes-----------------------------
 
 	private boolean registrarPlan(Plan plan) {
-		if (plan == null || plan.getCodigo() == null
-				|| plan.getCodigo().isBlank()) {
+		if (plan == null || plan.getCodigo() == null || plan.getCodigo().isBlank()) {
 			return false;
 		}
 
@@ -721,13 +708,11 @@ public class Altice implements Serializable {
 	}
 
 	// Modifica los datos generales de un plan.
-	public boolean modificarPlan(String codigo, String nombre,
-			String descripcion, float descuento) {
+	public boolean modificarPlan(String codigo, String nombre, String descripcion, float descuento) {
 
 		Plan plan = buscarPlan(codigo);
 
-		if (plan == null || nombre == null
-				|| nombre.isBlank() || descuento < 0) {
+		if (plan == null || nombre == null || nombre.isBlank() || descuento < 0) {
 			return false;
 		}
 
@@ -763,8 +748,7 @@ public class Altice implements Serializable {
 	}
 
 	// Agrega un servicio activo a un plan evitando duplicados.
-	public boolean agregarServicioPlan(String codigoPlan,
-			String codigoServicio) {
+	public boolean agregarServicioPlan(String codigoPlan, String codigoServicio) {
 
 		Plan plan = buscarPlan(codigoPlan);
 		Servicio servicio = buscarServicio(codigoServicio);
@@ -786,8 +770,7 @@ public class Altice implements Serializable {
 	}
 
 	// Quita un servicio de un plan.
-	public boolean quitarServicioPlan(String codigoPlan,
-			String codigoServicio) {
+	public boolean quitarServicioPlan(String codigoPlan, String codigoServicio) {
 
 		Plan plan = buscarPlan(codigoPlan);
 		Servicio servicio = buscarServicio(codigoServicio);
@@ -838,6 +821,141 @@ public class Altice implements Serializable {
 		}
 
 		return losPlanes.remove(plan);
+	}
+
+	public void generarFacturas(Date fechaProceso, int diasVencimiento) {
+
+		Calendar fechaCorte = Calendar.getInstance();
+		fechaCorte.set(Calendar.HOUR_OF_DAY, 0);
+		fechaCorte.set(Calendar.MINUTE, 0);
+		fechaCorte.set(Calendar.SECOND, 0);
+		fechaCorte.set(Calendar.MILLISECOND, 0);
+
+		int diaActual = fechaCorte.get(Calendar.DAY_OF_MONTH);
+
+		for (Cliente cliente : obtenerClientes()) {
+
+			if (!cliente.isActivo()) {
+				continue;
+			}
+
+			for (Contrato contrato : cliente.getLosContratos()) {
+
+				if (!contrato.estaActivo()) {
+					continue;
+				}
+
+				// Comprobar el dia de corte del contrato
+				if (contrato.getDiaCorte() != diaActual) {
+					continue;
+				}
+
+				// Definir el periodo de facturacion
+				Calendar periodoFin = (Calendar) fechaCorte.clone();
+
+				Calendar periodoInicio = (Calendar) fechaCorte.clone();
+				periodoInicio.add(Calendar.MONTH, -1);
+				periodoInicio.add(Calendar.DAY_OF_MONTH, 1);
+
+				Date inicio = periodoInicio.getTime();
+				Date fin = periodoFin.getTime();
+
+				// Evitar duplicar facturas del mismo contrato
+				boolean existe = false;
+
+				for (Factura factura : lasFacturas) {
+
+					if (factura.getCliente() == cliente && factura.getPeriodoInicio().equals(inicio)
+							&& factura.getPeriodoFin().equals(fin) && factura.getContratos().contains(contrato)) {
+
+						existe = true;
+						break;
+					}
+				}
+
+				if (existe) {
+					continue;
+				}
+
+				// Calcular vencimiento
+				Calendar vencimiento = (Calendar) fechaCorte.clone();
+				vencimiento.add(Calendar.DAY_OF_MONTH, diasVencimiento);
+
+				ArrayList<Contrato> contratosFactura = new ArrayList<>();
+				contratosFactura.add(contrato);
+
+				// Crear factura
+				String codigo = "FAC-" + generadorIdFactura++;
+
+				Factura factura = new Factura(codigo, fechaProceso, vencimiento.getTime(), inicio, fin, 0, 0, 0, 0,
+						cliente, false, null, contratosFactura);
+
+				factura.calcularTotal();
+
+				// Registrar factura en el sistema y el cliente
+				lasFacturas.add(factura);
+				cliente.getLasFacturas().add(factura);
+			}
+		}
+	}
+
+	public ArrayList<Factura> obtenerFacturasVencidasCliente(Cliente cliente, Date fechaProceso) {
+
+		ArrayList<Factura> vencidas = new ArrayList<>();
+
+		for (Factura factura : cliente.getLasFacturas()) {
+
+			if (!factura.isPagada() && factura.getFechaVencimiento() != null
+					&& factura.getFechaVencimiento().before(fechaProceso)) {
+
+				vencidas.add(factura);
+			}
+		}
+
+		return vencidas;
+	}
+
+	public float calcularDeudaPendiente(Cliente cliente) {
+
+		float deudaTotal = 0;
+
+		for (Factura factura : cliente.getLasFacturas()) {
+
+			if (!factura.isPagada()) {
+				deudaTotal += factura.getTotal();
+			}
+		}
+
+		return deudaTotal;
+	}
+
+	public void suspenderContratosCliente(Cliente cliente) {
+
+		for (Contrato contrato : cliente.getLosContratos()) {
+
+			if (contrato.estaActivo()) {
+				contrato.suspenderContrato();
+			}
+		}
+	}
+
+	public void verificarMorosidad(Date fechaProceso) {
+
+		for (Cliente cliente : obtenerClientes()) {
+
+			ArrayList<Factura> vencidas = obtenerFacturasVencidasCliente(cliente, fechaProceso);
+
+			if (vencidas.size() >= 3) {
+
+				float deuda = calcularDeudaPendiente(cliente);
+
+				suspenderContratosCliente(cliente);
+
+				System.out.println("Cliente moroso: " + cliente.getNombre());
+
+				System.out.println("Deuda acumulada: RD$" + deuda);
+			}
+		}
 	}
 
 }
