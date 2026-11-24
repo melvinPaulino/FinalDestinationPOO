@@ -30,8 +30,7 @@ public class Altice implements Serializable {
 
 	private static Altice instancia = null;
 
-	// Ubicacion del fichero de datos (relativa a la carpeta desde donde se ejecuta
-	// el programa)
+	// Ubicacion del fichero de datos (relativa a la carpeta desde donde se ejecuta el programa)
 	private static final String CARPETA_DATOS = "datos";
 	private static final String ARCHIVO_DATOS = "altice.dat";
 
@@ -185,8 +184,7 @@ public class Altice implements Serializable {
 		return null;
 	}
 
-	// Guarda todo el sistema (esta instancia de Altice y, con ella, todos sus
-	// objetos) en datos/altice.dat
+	// Guarda todo el sistema (esta instancia de Altice y, con ella, todos sus objetos en altice.dat
 	public void guardarDatos() throws IOException {
 		File carpeta = new File(CARPETA_DATOS);
 		if (!carpeta.exists() && !carpeta.mkdirs()) {
@@ -195,8 +193,7 @@ public class Altice implements Serializable {
 		File destino = new File(carpeta, ARCHIVO_DATOS);
 		File temporal = new File(carpeta, ARCHIVO_DATOS + ".tmp");
 
-		// Se escribe primero en un archivo temporal: si algo falla a mitad, el archivo
-		// anterior queda intacto
+		// Se escribe primero en un archivo temporal: si algo falla a mitad, el archivo anterior queda intacto
 		try (ObjectOutputStream salida = new ObjectOutputStream(
 				new BufferedOutputStream(new FileOutputStream(temporal)))) {
 			salida.writeObject(this);
@@ -206,8 +203,7 @@ public class Altice implements Serializable {
 		Files.move(temporal.toPath(), destino.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
 
-	// Carga el sistema desde datos/altice.dat. Si el archivo no existe (primera
-	// ejecucion) no hace nada
+	// Carga el sistema desde datos/altice.dat. Si el archivo no existe (primera ejecucion) no hace nada
 	public static void cargarDatos() throws IOException, ClassNotFoundException {
 
 		File archivo = new File(CARPETA_DATOS, ARCHIVO_DATOS);
@@ -218,9 +214,9 @@ public class Altice implements Serializable {
 		try (ObjectInputStream entrada = new ObjectInputStream(new BufferedInputStream(new FileInputStream(archivo)))) {
 			Altice leida = (Altice) entrada.readObject();
 
-			// Si se carga un archivo antiguo, la nueva lista podría quedar en null, porque
-			// no existía cuando se guardó el archivo.
+			// Si se carga un archivo antiguo, la nueva lista podría quedar en null, porque no existía cuando se guardó el archivo.
 			// Para asegurarnos de que esto no pase:
+			
 			if (leida.losServicios == null) {
 				leida.losServicios = new ArrayList<>();
 			}
@@ -234,13 +230,13 @@ public class Altice implements Serializable {
 			Files.copy(archivo.toPath(), new File(CARPETA_DATOS, ARCHIVO_DATOS + ".bak").toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 			throw e;
-			// Si el archivo no se puede leer se conserva una copia para no perder lo que
-			// contenga
+			
+			// Si el archivo no se puede leer se conserva una copia para no perder lo que contenga
 
 		}
 	}
 
-	// -----------------------------CRUD Empleado-----------------------------
+	//CRUD Empleado
 
 	// Registra un empleado verificando que no exista previamente.
 	public boolean registrarEmpleado(Empleado empleado) {
@@ -346,7 +342,7 @@ public class Altice implements Serializable {
 		return true;
 	}
 
-	// -----------------------------CRUD Admins-----------------------------
+	// CRUD Admins
 
 	// Devuelve los empleados con permisos administrativos.
 	public ArrayList<Empleado> obtenerAdministradores() {
@@ -403,7 +399,7 @@ public class Altice implements Serializable {
 
 	}
 
-	// -----------------------------CRUD Clientes-----------------------------
+	// CRUD Clientes                  
 
 	// Registra un cliente verificando que no exista previamente.
 	public boolean registrarCliente(Cliente cliente) {
@@ -557,7 +553,7 @@ public class Altice implements Serializable {
 		return true;
 	}
 
-	// -----------------------------CRUD Servicios-----------------------------
+	// CRUD Servicios
 
 	// Registra un servicio si su codigo no existe previamente.
 	public boolean registrarServicio(Servicio servicio) {
@@ -664,7 +660,7 @@ public class Altice implements Serializable {
 		return losServicios.remove(servicio);
 	}
 
-	// -----------------------------CRUD Planes-----------------------------
+	// CRUD Planes
 
 	private boolean registrarPlan(Plan plan) {
 		if (plan == null || plan.getCodigo() == null || plan.getCodigo().isBlank()) {
@@ -962,7 +958,7 @@ public class Altice implements Serializable {
 	}
 
 
-	// -----------------------------Primer inicio de sesion-----------------------------
+	// Primer inicio de sesion
 
 	// Crea la cuenta del primer administrador con el usuario y la clave ingresados en el login.
 	// Devuelve null si ya existe un administrador o si los datos no son validos.
@@ -985,7 +981,7 @@ public class Altice implements Serializable {
 		return admin;
 	}
 
-	// -----------------------------CRUD Contratos-----------------------------
+	// CRUD Contratos
 
 	// Registra un contrato nuevo (cliente + plan + comercial) con estado ACTIVO.
 	// Devuelve el contrato creado, o null si algun dato no es valido.
@@ -1271,7 +1267,7 @@ public class Altice implements Serializable {
 		return contrato.getCliente().getLosContratos().remove(contrato);
 	}
 
-	// -----------------------------CRUD Facturas-----------------------------
+	//CRUD Facturas
 
 	// Crea la factura de un contrato activo para el mes que termina en fechaProceso.
 	// Devuelve null si el contrato no se puede facturar o si ese periodo ya fue facturado.
