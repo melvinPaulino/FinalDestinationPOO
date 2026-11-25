@@ -148,36 +148,36 @@ public class Factura implements Serializable {
 		this.fechaPago = fechaPago;
 	} 
 
-	public void registrarPago() {
-    if (!pagada && !anulada) {
-        this.pagada = true;
-        this.fechaPago = new Date();
-    }
-}
+	public synchronized void registrarPago() {
+		if (!pagada && !anulada) {
+			this.pagada = true;
+			this.fechaPago = new Date();
+		}
+	}
 
-public void calcularTotal() {
-    subtotal = 0;
+	public synchronized void calcularTotal() {
+		subtotal = 0;
 
-    for (Contrato contrato : contratos) {
-        subtotal += contrato.calcularCargoMensual();
-    }
+		for (Contrato contrato : contratos) {
+			subtotal += contrato.calcularCargoMensual();
+		}
 
-    float baseImponible = subtotal - descuento;
+		float baseImponible = subtotal - descuento;
 
-    itbis = baseImponible * TASA_ITBIS;
-    total = baseImponible + itbis;
-}
+		itbis = baseImponible * TASA_ITBIS;
+		total = baseImponible + itbis;
+	}
 
-public boolean isPagada() {
-    return pagada;
-}
+	public synchronized boolean isPagada() {
+		return pagada;
+	}
 
-	public boolean isAnulada() {
+	public synchronized boolean isAnulada() {
 		return anulada;
 	}
 
 	// Una factura pagada no se puede anular
-	public void anular() {
+	public synchronized void anular() {
 		if (!pagada) {
 			this.anulada = true;
 		}

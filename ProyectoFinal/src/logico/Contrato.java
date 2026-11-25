@@ -107,28 +107,29 @@ public class Contrato implements Serializable {
 		this.fechaSuspension = fechaSuspension;
 	}
 
-	public boolean estaActivo() {
-    return estadoContrato.equalsIgnoreCase("ACTIVO");
-}
-public void suspenderContrato() {
-    this.estadoContrato = "SUSPENDIDO";
-    this.fechaSuspension = new Date();
-}
+	public synchronized boolean estaActivo() {
+		return estadoContrato.equalsIgnoreCase("ACTIVO");
+	}
 
-	public boolean estaSuspendido() {
+	public synchronized void suspenderContrato() {
+		this.estadoContrato = "SUSPENDIDO";
+		this.fechaSuspension = new Date();
+	}
+
+	public synchronized boolean estaSuspendido() {
 		return estadoContrato.equalsIgnoreCase(EstadoContrato.SUSPENDIDO.name());
 	}
 
-	public boolean estaCancelado() {
+	public synchronized boolean estaCancelado() {
 		return estadoContrato.equalsIgnoreCase(EstadoContrato.CANCELADO.name());
 	}
 
-	public void reactivarContrato() {
+	public synchronized void reactivarContrato() {
 		this.estadoContrato = EstadoContrato.ACTIVO.name();
 		this.fechaSuspension = null;
 	}
 
-	public void cancelarContrato() {
+	public synchronized void cancelarContrato() {
 		this.estadoContrato = EstadoContrato.CANCELADO.name();
 	}
 

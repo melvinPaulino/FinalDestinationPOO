@@ -10,6 +10,7 @@ import java.util.Base64;
 public abstract class Persona implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	private static final SecureRandom RANDOM = new SecureRandom();
 
 	private String cedula;
 	private String nombre;
@@ -80,30 +81,30 @@ public abstract class Persona implements Serializable {
 	}
 
 
-	public String getUsuario() { return usuario; }
+	public synchronized String getUsuario() { return usuario; }
 
-	public void setUsuario(String usuario) {
+	public synchronized void setUsuario(String usuario) {
 		if (usuario == null || usuario.trim().isEmpty())
 			throw new IllegalArgumentException("El usuario no puede estar vacio");
 		this.usuario = usuario.trim();
 	}
 
 	// La contrasena se guarda como hash con sal, nunca como texto plano.
-	public void setClave(String clave) {
+	public synchronized void setClave(String clave) {
 		if (clave == null || clave.isEmpty())
 			throw new IllegalArgumentException("La clave no puede estar vacia");
 		this.sal = generarSal();
 		this.claveCifrada = cifrar(clave, sal);
 	}
 
-	public boolean claveCoincide(String clave) {
+	public synchronized boolean claveCoincide(String clave) {
 		return clave != null && sal != null && claveCifrada != null
 			&& MessageDigest.isEqual(claveCifrada.getBytes(StandardCharsets.UTF_8),
 				cifrar(clave, sal).getBytes(StandardCharsets.UTF_8));
 	}
 
 	// Se puede iniciar sesion con usuario o cedula (con o sin guiones).
-	public boolean credencialCoincide(String credencial) {
+	public synchronized boolean credencialCoincide(String credencial) {
 		if (credencial == null || credencial.trim().isEmpty()) return false;
 		if (usuario != null && usuario.equalsIgnoreCase(credencial.trim())) return true;
 		String digitos = soloDigitos(credencial);
@@ -116,7 +117,7 @@ public abstract class Persona implements Serializable {
 
 	private static String generarSal() {
 		byte[] bytes = new byte[16];
-		new SecureRandom().nextBytes(bytes);
+		RANDOM.nextBytes(bytes);
 		return Base64.getEncoder().encodeToString(bytes);
 	}
 
