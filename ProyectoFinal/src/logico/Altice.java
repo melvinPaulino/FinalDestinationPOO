@@ -959,6 +959,7 @@ public class Altice implements Serializable {
 	public void generarFacturas(Date fechaProceso, int diasVencimiento) {
 		ejecutarConEscritura(() -> {
 			Calendar fechaCorte = Calendar.getInstance();
+			fechaCorte.setTime(fechaProceso);
 			fechaCorte.set(Calendar.HOUR_OF_DAY, 0);
 			fechaCorte.set(Calendar.MINUTE, 0);
 			fechaCorte.set(Calendar.SECOND, 0);
