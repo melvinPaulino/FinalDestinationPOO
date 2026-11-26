@@ -7,7 +7,8 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
+import java.util.Date;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -15,11 +16,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
-import logico.Altice;
 import logico.Empleado;
 import logico.Persona;
+import hilos.HiloMorosidad;
+import hilos.HilosFacturacion;
+import hilos.HilosGuardar;
 
 public class Principal extends JFrame {
 
@@ -27,11 +31,12 @@ public class Principal extends JFrame {
 
 	private JPanel contentPane;
 	private Persona sesion;
+	private static HiloMorosidad hiloMorosidad;
 
 	public static void main(String[] args) {
 		Login.main(args);
 	}
-	
+
 	public Principal() {
 		this(null);
 	}
@@ -41,6 +46,12 @@ public class Principal extends JFrame {
 	 */
 	public Principal(Persona sesion) {
 		this.sesion = sesion;
+
+		if (hiloMorosidad == null || !hiloMorosidad.isAlive()) { //Esto crea el hilo si todavía no existe o si ya terminó, y luego lo inicia.
+			hiloMorosidad = new HiloMorosidad(24L * 60 * 60 * 1000);
+			hiloMorosidad.start();
+		}
+
 		setForeground(Color.WHITE);
 		setFont(null);
 		setBackground(new Color(105, 105, 105));
@@ -54,7 +65,7 @@ public class Principal extends JFrame {
 				salir();
 			}
 		});
-		
+
 		setSize(1920, 1080);
 		setLocationRelativeTo(null);
 		Point p = getLocation();
@@ -63,55 +74,55 @@ public class Principal extends JFrame {
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setBackground(new Color(105, 105, 105));
 		setJMenuBar(menuBar);
-		
-				JMenu mnNewMenu = new JMenu("Clientes");
-				mnNewMenu.setBackground(new Color(128, 0, 128));
-				mnNewMenu.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 12));
-				menuBar.add(mnNewMenu);
-				
-						JMenuItem mntmNewMenuItem = new JMenuItem("Registrar un Cliente");
-						mntmNewMenuItem.setBackground(new Color(46, 139, 87));
-						mnNewMenu.add(mntmNewMenuItem);
-						
-								JMenuItem mntmNewMenuItem_1 = new JMenuItem("Consultar un Cliente");
-								mntmNewMenuItem_1.setBackground(new Color(139, 0, 139));
-								mnNewMenu.add(mntmNewMenuItem_1);
-		
+
+		JMenu mnNewMenu = new JMenu("Clientes");
+		mnNewMenu.setBackground(new Color(128, 0, 128));
+		mnNewMenu.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 12));
+		menuBar.add(mnNewMenu);
+
+		JMenuItem mntmNewMenuItem = new JMenuItem("Registrar un Cliente");
+		mntmNewMenuItem.setBackground(new Color(46, 139, 87));
+		mnNewMenu.add(mntmNewMenuItem);
+
+		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Consultar un Cliente");
+		mntmNewMenuItem_1.setBackground(new Color(139, 0, 139));
+		mnNewMenu.add(mntmNewMenuItem_1);
+
 		JMenu EmpleadosMenu_1_1 = new JMenu("Empleados");
 		EmpleadosMenu_1_1.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
 		EmpleadosMenu_1_1.setBackground(new Color(139, 0, 139));
 		menuBar.add(EmpleadosMenu_1_1);
-		
+
 		JMenuItem mntmRegistrarUnEmpleado = new JMenuItem("Registrar un Empleado");
 		mntmRegistrarUnEmpleado.setBackground(new Color(46, 139, 87));
 		EmpleadosMenu_1_1.add(mntmRegistrarUnEmpleado);
-		
+
 		JMenuItem mntmConsultarEmpleados = new JMenuItem("Consultar empleados");
 		mntmConsultarEmpleados.setBackground(new Color(139, 0, 139));
 		EmpleadosMenu_1_1.add(mntmConsultarEmpleados);
-		
+
 		JMenu trabajadorMenu = new JMenu("Trabajadores");
 		trabajadorMenu.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
 		trabajadorMenu.setBackground(new Color(139, 0, 139));
 		menuBar.add(trabajadorMenu);
-		
+
 		JMenuItem mntmRegistrarUnTrabajador = new JMenuItem("Registrar un Trabajador");
 		mntmRegistrarUnTrabajador.setBackground(new Color(46, 139, 87));
 		trabajadorMenu.add(mntmRegistrarUnTrabajador);
-		
+
 		JMenuItem mntmConsultarUnTrabajador = new JMenuItem("Consultar un Trabajador");
 		mntmConsultarUnTrabajador.setBackground(new Color(139, 0, 139));
 		trabajadorMenu.add(mntmConsultarUnTrabajador);
-		
+
 		JMenu comercialMenu_1 = new JMenu("Comerciales");
 		comercialMenu_1.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
 		comercialMenu_1.setBackground(new Color(139, 0, 139));
 		menuBar.add(comercialMenu_1);
-		
+
 		JMenuItem mntmRegistrarUnComercial = new JMenuItem("Registrar un comercial");
 		mntmRegistrarUnComercial.setBackground(new Color(46, 139, 87));
 		comercialMenu_1.add(mntmRegistrarUnComercial);
-		
+
 		JMenuItem mntmConsultarUnComercial = new JMenuItem("Consultar comerciales");
 		mntmConsultarUnComercial.setBackground(new Color(139, 0, 139));
 		comercialMenu_1.add(mntmConsultarUnComercial);
@@ -128,29 +139,29 @@ public class Principal extends JFrame {
 		JMenuItem consultarAdmin = new JMenuItem("Consultar un administrador");
 		consultarAdmin.setBackground(new Color(139, 0, 139));
 		AdministradoresMenu.add(consultarAdmin);
-		
+
 		JMenu planesMenu = new JMenu("Planes");
 		planesMenu.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
 		planesMenu.setBackground(new Color(139, 0, 139));
 		menuBar.add(planesMenu);
-		
+
 		JMenuItem mntmRegistrarUnPlan = new JMenuItem("Registrar un plan");
 		mntmRegistrarUnPlan.setBackground(new Color(46, 139, 87));
 		planesMenu.add(mntmRegistrarUnPlan);
-		
+
 		JMenuItem mntmConsultarPlanes = new JMenuItem("Consultar planes");
 		mntmConsultarPlanes.setBackground(new Color(139, 0, 139));
 		planesMenu.add(mntmConsultarPlanes);
-		
+
 		JMenu serviciosMenu = new JMenu("Servicios");
 		serviciosMenu.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
 		serviciosMenu.setBackground(new Color(139, 0, 139));
 		menuBar.add(serviciosMenu);
-		
+
 		JMenuItem mntmRegistrarUnServicio = new JMenuItem("Registrar un servicio");
 		mntmRegistrarUnServicio.setBackground(new Color(46, 139, 87));
 		serviciosMenu.add(mntmRegistrarUnServicio);
-		
+
 		JMenuItem mntmConsultarServicios = new JMenuItem("Consultar servicios");
 		mntmConsultarServicios.setBackground(new Color(139, 0, 139));
 		serviciosMenu.add(mntmConsultarServicios);
@@ -161,6 +172,55 @@ public class Principal extends JFrame {
 		menuBar.add(mnNewMenu_1);
 
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Facturar Contrato");
+		mntmNewMenuItem_2.addActionListener(e -> {
+
+			mntmNewMenuItem_2.setEnabled(false);
+
+			boolean iniciado = HilosFacturacion.iniciar(
+					new Date(),
+					15,
+
+					error -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog( // hace que el aviso final
+																								// se ejecute en el hilo
+																								// de la interfaz
+																								// gráfica, que es donde
+																								// Swing espera que se
+																								// actualicen las
+																								// ventanas y se
+																								// muestren los
+																								// mensajes.
+							this,
+							"Ocurrió un error al generar las facturas:\n"
+									+ error.getMessage(),
+							"Error de facturación",
+							JOptionPane.ERROR_MESSAGE)),
+
+					() -> SwingUtilities.invokeLater(() -> {
+						mntmNewMenuItem_2.setEnabled(true);
+
+						JOptionPane.showMessageDialog(
+								this,
+								"El proceso de facturación terminó.",
+								"Facturación",
+								JOptionPane.INFORMATION_MESSAGE);
+					}));
+
+			if (iniciado) {
+				JOptionPane.showMessageDialog(
+						this,
+						"Se inició el proceso de facturación.",
+						"Facturación",
+						JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				mntmNewMenuItem_2.setEnabled(true);
+
+				JOptionPane.showMessageDialog(
+						this,
+						"Ya hay un proceso de facturación en ejecución.",
+						"Facturación",
+						JOptionPane.WARNING_MESSAGE);
+			}
+		});
 		mntmNewMenuItem_2.setBackground(new Color(46, 139, 87));
 		mnNewMenu_1.add(mntmNewMenuItem_2);
 
@@ -258,32 +318,55 @@ public class Principal extends JFrame {
 		return esAdmin ? "Administrador" : "Comercial";
 	}
 
-	// Guarda los datos en el fichero. Si falla, pregunta si se quiere continuar de todos modos
-	private boolean guardarDatos() {
-		try {
-			Altice.getInstancia().guardarDatos();
-			return true;
-		} catch (IOException e) {
-			int opcion = JOptionPane.showConfirmDialog(this,
-					"No se pudieron guardar los datos:\n" + e.getMessage() + "\n\n¿Continuar de todos modos?",
-					"Error al guardar", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
-			return opcion == JOptionPane.YES_OPTION;
+	// Intenta guardar los datos usando HilosGuardar, para que la interfaz no se
+	// quede bloqueada mientras se escribe el archivo. Cuando termina el guardado,
+	// decide si debe continuar con la acción que le pasaste, como cerrar el
+	// programa o cerrar sesión.
+	private void guardarDatos(Runnable alGuardar) {
+
+		boolean iniciado = HilosGuardar.iniciar(hilo -> {
+
+			if (hilo.isGuardadoExitoso()) {
+				alGuardar.run();
+
+			} else {
+				int opcion = JOptionPane.showConfirmDialog(
+						this,
+						"No se pudieron guardar los datos:\n"
+								+ hilo.getError().getMessage()
+								+ "\n\n¿Continuar de todos modos?",
+						"Error al guardar",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.ERROR_MESSAGE);
+
+				if (opcion == JOptionPane.YES_OPTION) {
+					alGuardar.run();
+				}
+			}
+		});
+
+		if (!iniciado) {
+			JOptionPane.showMessageDialog(
+					this,
+					"Ya hay un proceso de guardado en ejecución.",
+					"Guardado",
+					JOptionPane.WARNING_MESSAGE);
 		}
 	}
 
 	// Boton de cerrar de la ventana: guarda y cierra el programa
 	private void salir() {
-		if (guardarDatos()) {
+		guardarDatos(() -> {
 			dispose();
 			System.exit(0);
-		}
+			hiloMorosidad.detenerHilo(); // Detiene el hilo de morosidad antes de salir del programa
+		});
 	}
 
-	// Boton inferior: guarda, cierra esta ventana y vuelve al Login
 	private void cerrarSesion() {
-		if (guardarDatos()) {
+		guardarDatos(() -> {
 			dispose();
 			new Login().setVisible(true);
-		}
+		});
 	}
 }

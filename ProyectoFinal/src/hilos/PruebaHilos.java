@@ -7,8 +7,8 @@ import logico.Altice;
 
 public class PruebaHilos {
 
-    public static void main(String[] args)
-            throws InterruptedException,IOException, ClassNotFoundException {
+    public static void main(String[] args){}
+            /* throws InterruptedException,IOException, ClassNotFoundException {
 
         HilosFacturacion hilo1 =
                 new HilosFacturacion(new Date(), 15);
@@ -57,5 +57,5 @@ public class PruebaHilos {
         System.out.println("Hilo de morosidad finalizado.");
 
         System.out.println("¿Sigue activo? " + hiloM.isAlive());
-    }
-    }
+    } */
+}

@@ -1,6 +1,11 @@
 package hilos;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import javax.swing.SwingUtilities;
+
 import logico.Altice;
 
 public class HilosGuardar extends Thread {
@@ -8,14 +13,27 @@ public class HilosGuardar extends Thread {
     private boolean guardadoExitoso;
     private Exception error;
 
-    public HilosGuardar() {
+    private final Consumer<HilosGuardar> alTerminar; //Represents an operation that accepts a single input argument and returns no result.
+
+    private static final AtomicBoolean guardando = new AtomicBoolean(false);
+
+    public HilosGuardar(Consumer<HilosGuardar> alTerminar) {
         super("Hilo-Guardar");
+        this.alTerminar = alTerminar;
         this.guardadoExitoso = false;
         this.error = null;
     }
 
-    // Para guardar la información de Altice en el archivo altice.dat sin detener
-    // innecesariamente la interfaz gráfica.
+    public static boolean iniciar(Consumer<HilosGuardar> alTerminar) {
+        if (!guardando.compareAndSet(false, true)) {
+            return false;
+        }
+
+        HilosGuardar hilo = new HilosGuardar(alTerminar);
+        hilo.start();
+        return true;
+    }
+
     @Override
     public void run() {
         try {
@@ -24,6 +42,13 @@ public class HilosGuardar extends Thread {
 
         } catch (IOException | RuntimeException e) {
             error = e;
+
+        } finally {
+            guardando.set(false);
+
+            if (alTerminar != null) {
+                SwingUtilities.invokeLater(() -> alTerminar.accept(this));
+            }
         }
     }
 
@@ -35,4 +60,7 @@ public class HilosGuardar extends Thread {
         return error;
     }
 
+    public static boolean isGuardando() {
+        return guardando.get();
+    }
 }
