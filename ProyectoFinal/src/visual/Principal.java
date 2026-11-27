@@ -24,6 +24,13 @@ import logico.Persona;
 import hilos.HiloMorosidad;
 import hilos.HilosFacturacion;
 import hilos.HilosGuardar;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+import visual.PanelClientes;
+import visual.PanelContratos;
+import visual.PanelComercial;
+import visual.PanelServicio;
 
 public class Principal extends JFrame {
 
@@ -32,6 +39,7 @@ public class Principal extends JFrame {
 	private JPanel contentPane;
 	private Persona sesion;
 	private static HiloMorosidad hiloMorosidad;
+	private JPanel panelCentral;
 
 	public static void main(String[] args) {
 		Login.main(args);
@@ -80,9 +88,23 @@ public class Principal extends JFrame {
 		mnNewMenu.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 12));
 		menuBar.add(mnNewMenu);
 
+		
 		JMenuItem mntmNewMenuItem = new JMenuItem("Registrar un Cliente");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				PanelClientes panel = new PanelClientes();
+
+				panelCentral.removeAll();
+				panelCentral.add(panel, BorderLayout.CENTER);
+
+				panelCentral.revalidate();
+				panelCentral.repaint();
+			}
+		});
 		mntmNewMenuItem.setBackground(new Color(46, 139, 87));
 		mnNewMenu.add(mntmNewMenuItem);
+		
 
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Consultar un Cliente");
 		mntmNewMenuItem_1.setBackground(new Color(139, 0, 139));
@@ -120,7 +142,24 @@ public class Principal extends JFrame {
 		menuBar.add(comercialMenu_1);
 
 		JMenuItem mntmRegistrarUnComercial = new JMenuItem("Registrar un comercial");
+
+		mntmRegistrarUnComercial.addActionListener(new ActionListener() {
+
+		    public void actionPerformed(ActionEvent e) {
+
+		        PanelComercial panel = new PanelComercial();
+
+		        panelCentral.removeAll();
+		        panelCentral.add(panel, BorderLayout.CENTER);
+
+		        panelCentral.revalidate();
+		        panelCentral.repaint();
+		    }
+
+		});
+
 		mntmRegistrarUnComercial.setBackground(new Color(46, 139, 87));
+
 		comercialMenu_1.add(mntmRegistrarUnComercial);
 
 		JMenuItem mntmConsultarUnComercial = new JMenuItem("Consultar comerciales");
@@ -146,7 +185,22 @@ public class Principal extends JFrame {
 		menuBar.add(planesMenu);
 
 		JMenuItem mntmRegistrarUnPlan = new JMenuItem("Registrar un plan");
+
+		mntmRegistrarUnPlan.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+
+		        PanelPlan panel = new PanelPlan();
+
+		        panelCentral.removeAll();
+		        panelCentral.add(panel, BorderLayout.CENTER);
+		        panelCentral.revalidate();
+		        panelCentral.repaint();
+
+		    }
+		});
+
 		mntmRegistrarUnPlan.setBackground(new Color(46, 139, 87));
+
 		planesMenu.add(mntmRegistrarUnPlan);
 
 		JMenuItem mntmConsultarPlanes = new JMenuItem("Consultar planes");
@@ -159,6 +213,15 @@ public class Principal extends JFrame {
 		menuBar.add(serviciosMenu);
 
 		JMenuItem mntmRegistrarUnServicio = new JMenuItem("Registrar un servicio");
+		mntmRegistrarUnServicio.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        PanelServicio panel = new PanelServicio();
+		        panelCentral.removeAll();
+		        panelCentral.add(panel, BorderLayout.CENTER);
+		        panelCentral.revalidate();
+		        panelCentral.repaint();
+		    }
+		});
 		mntmRegistrarUnServicio.setBackground(new Color(46, 139, 87));
 		serviciosMenu.add(mntmRegistrarUnServicio);
 
@@ -249,6 +312,16 @@ public class Principal extends JFrame {
 		JMenuItem mntmRegistrarUnContrato = new JMenuItem("Registrar un contrato");
 		mntmRegistrarUnContrato.setBackground(new Color(46, 139, 87));
 		contratosMenu.add(mntmRegistrarUnContrato);
+		
+		mntmRegistrarUnContrato.addActionListener(e -> {
+		    PanelContratos panel = new PanelContratos();
+
+		    panelCentral.removeAll();
+		    panelCentral.add(panel, BorderLayout.CENTER);
+
+		    panelCentral.revalidate();
+		    panelCentral.repaint();
+		});
 
 		JMenuItem mntmConsultarContratos = new JMenuItem("Consultar contratos");
 		mntmConsultarContratos.setBackground(new Color(139, 0, 139));
@@ -286,10 +359,15 @@ public class Principal extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 
-		// Imagen de fondo (plantilla de 1920x1080)
+		// Panel central donde se mostrarán las diferentes pantallas
+		panelCentral = new JPanel();
+		panelCentral.setLayout(new BorderLayout(0, 0));
+
 		PanelFondo fondo = new PanelFondo("/img/fondo_main.png");
 		fondo.setLayout(null);
-		contentPane.add(fondo, BorderLayout.CENTER);
+
+		panelCentral.add(fondo, BorderLayout.CENTER);
+		contentPane.add(panelCentral, BorderLayout.CENTER);
 
 		// Barra inferior: datos de la sesion y boton de cerrar sesion
 		JPanel barraInferior = new JPanel();
@@ -369,4 +447,6 @@ public class Principal extends JFrame {
 			new Login().setVisible(true);
 		});
 	}
+	
+	
 }

@@ -34,7 +34,8 @@ public class Altice implements Serializable {
 	private static volatile Altice instancia = null;
 	private static final Object DATOS_LOCK = new Object();
 
-	// Ubicacion del fichero de datos (relativa a la carpeta desde donde se ejecuta el programa)
+	// Ubicacion del fichero de datos (relativa a la carpeta desde donde se ejecuta
+	// el programa)
 	private static final String CARPETA_DATOS = "datos";
 	private static final String ARCHIVO_DATOS = "altice.dat";
 
@@ -104,7 +105,8 @@ public class Altice implements Serializable {
 	}
 
 	public void setLasPersonas(ArrayList<Persona> lasPersonas) {
-		ejecutarConEscritura(() -> this.lasPersonas = lasPersonas != null ? new ArrayList<>(lasPersonas) : new ArrayList<>());
+		ejecutarConEscritura(
+				() -> this.lasPersonas = lasPersonas != null ? new ArrayList<>(lasPersonas) : new ArrayList<>());
 	}
 
 	public ArrayList<Factura> getLasFacturas() {
@@ -112,7 +114,8 @@ public class Altice implements Serializable {
 	}
 
 	public void setLasFacturas(ArrayList<Factura> lasFacturas) {
-		ejecutarConEscritura(() -> this.lasFacturas = lasFacturas != null ? new ArrayList<>(lasFacturas) : new ArrayList<>());
+		ejecutarConEscritura(
+				() -> this.lasFacturas = lasFacturas != null ? new ArrayList<>(lasFacturas) : new ArrayList<>());
 	}
 
 	public static int getGeneradorIdPersona() {
@@ -124,7 +127,8 @@ public class Altice implements Serializable {
 	}
 
 	public void setLosServicios(ArrayList<Servicio> losServicios) {
-		ejecutarConEscritura(() -> this.losServicios = losServicios != null ? new ArrayList<>(losServicios) : new ArrayList<>());
+		ejecutarConEscritura(
+				() -> this.losServicios = losServicios != null ? new ArrayList<>(losServicios) : new ArrayList<>());
 	}
 
 	public ArrayList<Plan> getLosPlanes() {
@@ -207,21 +211,50 @@ public class Altice implements Serializable {
 
 	// Registra una persona solo si sus credenciales estan configuradas y son
 	// unicas.
-	public boolean registrarPersona(Persona nueva) {
-		return conEscritura(() -> {
-			if (nueva == null || nueva.getUsuario() == null || nueva.getUsuario().trim().isEmpty()
-					|| nueva.getCedula() == null || nueva.getCedula().trim().isEmpty())
-				return false;
-			for (Persona p : lasPersonas) {
-				if (p.getUsuario() != null && p.getUsuario().equalsIgnoreCase(nueva.getUsuario()))
-					return false;
-				if (p.getCedula() != null && soloDigitos(p.getCedula()).equals(soloDigitos(nueva.getCedula())))
-					return false;
-			}
-			lasPersonas.add(nueva);
-			return true;
-		});
-	}
+
+public boolean registrarPersona(Persona nueva) {
+
+    return conEscritura(() -> {
+
+        if (nueva == null) {
+            System.out.println("RECHAZADO: Persona nula.");
+            return false;
+        }
+
+        if (nueva.getUsuario() == null || nueva.getUsuario().trim().isEmpty()) {
+            System.out.println("RECHAZADO: Usuario vacío.");
+            return false;
+        }
+
+        if (nueva.getCedula() == null || nueva.getCedula().trim().isEmpty()) {
+            System.out.println("RECHAZADO: Cédula vacía.");
+            return false;
+        }
+
+        for (Persona p : lasPersonas) {
+
+            if (p.getUsuario() != null &&
+                    p.getUsuario().equalsIgnoreCase(nueva.getUsuario())) {
+
+                System.out.println("RECHAZADO: Usuario repetido: " + nueva.getUsuario());
+                return false;
+            }
+
+            if (p.getCedula() != null &&
+                    soloDigitos(p.getCedula()).equals(soloDigitos(nueva.getCedula()))) {
+
+                System.out.println("RECHAZADO: Cédula repetida: " + nueva.getCedula());
+                return false;
+            }
+        }
+
+        lasPersonas.add(nueva);
+
+        System.out.println("PERSONA REGISTRADA CORRECTAMENTE.");
+
+        return true;
+    });
+}
 
 	private static String soloDigitos(String valor) {
 		return valor.replaceAll("[^0-9]", "");
@@ -240,7 +273,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Guarda todo el sistema (esta instancia de Altice y, con ella, todos sus objetos en altice.dat
+	// Guarda todo el sistema (esta instancia de Altice y, con ella, todos sus
+	// objetos en altice.dat
 	public void guardarDatos() throws IOException {
 		synchronized (DATOS_LOCK) {
 			lock.readLock().lock();
@@ -252,7 +286,8 @@ public class Altice implements Serializable {
 				File destino = new File(carpeta, ARCHIVO_DATOS);
 				File temporal = new File(carpeta, ARCHIVO_DATOS + ".tmp");
 
-				// Se escribe primero en un archivo temporal: si algo falla a mitad, el archivo anterior queda intacto
+				// Se escribe primero en un archivo temporal: si algo falla a mitad, el archivo
+				// anterior queda intacto
 				try (ObjectOutputStream salida = new ObjectOutputStream(
 						new BufferedOutputStream(new FileOutputStream(temporal)))) {
 					salida.writeObject(this);
@@ -266,7 +301,8 @@ public class Altice implements Serializable {
 		}
 	}
 
-	// Carga el sistema desde datos/altice.dat. Si el archivo no existe (primera ejecucion) no hace nada
+	// Carga el sistema desde datos/altice.dat. Si el archivo no existe (primera
+	// ejecucion) no hace nada
 	public static void cargarDatos() throws IOException, ClassNotFoundException {
 		synchronized (DATOS_LOCK) {
 			File archivo = new File(CARPETA_DATOS, ARCHIVO_DATOS);
@@ -274,12 +310,14 @@ public class Altice implements Serializable {
 				return;
 			}
 
-			try (ObjectInputStream entrada = new ObjectInputStream(new BufferedInputStream(new FileInputStream(archivo)))) {
+			try (ObjectInputStream entrada = new ObjectInputStream(
+					new BufferedInputStream(new FileInputStream(archivo)))) {
 				Altice leida = (Altice) entrada.readObject();
 
-				// Si se carga un archivo antiguo, la nueva lista podría quedar en null, porque no existía cuando se guardó el archivo.
+				// Si se carga un archivo antiguo, la nueva lista podría quedar en null, porque
+				// no existía cuando se guardó el archivo.
 				// Para asegurarnos de que esto no pase:
-				
+
 				if (leida.losServicios == null) {
 					leida.losServicios = new ArrayList<>();
 				}
@@ -297,14 +335,15 @@ public class Altice implements Serializable {
 				Files.copy(archivo.toPath(), new File(CARPETA_DATOS, ARCHIVO_DATOS + ".bak").toPath(),
 						StandardCopyOption.REPLACE_EXISTING);
 				throw e;
-				
-				// Si el archivo no se puede leer se conserva una copia para no perder lo que contenga
+
+				// Si el archivo no se puede leer se conserva una copia para no perder lo que
+				// contenga
 
 			}
 		}
 	}
 
-	//CRUD Empleado
+	// CRUD Empleado
 
 	// Registra un empleado verificando que no exista previamente.
 	public boolean registrarEmpleado(Empleado empleado) {
@@ -485,23 +524,49 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// CRUD Clientes                  
+	// CRUD Clientes
+
+	// Registra un cliente verificando que no exista previamente.
 
 	// Registra un cliente verificando que no exista previamente.
 	public boolean registrarCliente(Cliente cliente) {
+
 		return conEscritura(() -> {
+
 			if (cliente == null) {
 				return false;
 			}
 
 			// Verifica que el codigo del cliente no este repetido.
 			for (Cliente c : obtenerClientes()) {
+
 				if (c.getCodigo().equalsIgnoreCase(cliente.getCodigo())) {
 					return false;
 				}
 			}
 
-			return registrarPersona(cliente);
+			// Registra el cliente.
+			boolean registrado = registrarPersona(cliente);
+
+			if (registrado) {
+
+				// Actualiza el generador para evitar reutilizar el ID.
+				String codigo = cliente.getCodigo();
+
+				if (codigo != null && codigo.startsWith("CLI-")) {
+
+					try {
+						int id = Integer.parseInt(codigo.substring(4));
+
+						generadorIdpersona.updateAndGet(actual -> Math.max(actual, id + 1));
+
+					} catch (NumberFormatException e) {
+						// El codigo no tiene un formato numerico valido.
+					}
+				}
+			}
+
+			return registrado;
 		});
 	}
 
@@ -515,7 +580,8 @@ public class Altice implements Serializable {
 				if (persona instanceof Cliente) {
 					Cliente cliente = (Cliente) persona;
 
-					if (cliente.getCedula().equals(identificador) || cliente.getCodigo().equalsIgnoreCase(identificador)) {
+					if (cliente.getCedula().equals(identificador)
+							|| cliente.getCodigo().equalsIgnoreCase(identificador)) {
 						return cliente;
 					}
 				}
@@ -777,7 +843,7 @@ public class Altice implements Serializable {
 
 	// CRUD Planes
 
-	private boolean registrarPlan(Plan plan) {
+	public boolean registrarPlan(Plan plan) {
 		return conEscritura(() -> {
 			if (plan == null || plan.getCodigo() == null || plan.getCodigo().isBlank()) {
 				return false;
@@ -1097,10 +1163,10 @@ public class Altice implements Serializable {
 		});
 	}
 
-
 	// Primer inicio de sesion
 
-	// Crea la cuenta del primer administrador con el usuario y la clave ingresados en el login.
+	// Crea la cuenta del primer administrador con el usuario y la clave ingresados
+	// en el login.
 	// Devuelve null si ya existe un administrador o si los datos no son validos.
 	public Administrativo registrarAdministradorInicial(String usuario, String clave) {
 		return conEscritura(() -> {
@@ -1110,9 +1176,10 @@ public class Altice implements Serializable {
 
 			int idActual = generadorIdpersona.get();
 
-			// La cedula y los demas datos todavia no se conocen: se completan luego desde el sistema
-			Administrativo admin = new Administrativo("SIN-CEDULA", "Administrador", "", "", "", "",
-					"ADM-" + idActual, 0, new Date(), "Administracion", 0);
+			// La cedula y los demas datos todavia no se conocen: se completan luego desde
+			// el sistema
+			Administrativo admin = new Administrativo("SIN-CEDULA", "Administrador", "", "", "", "", "ADM-" + idActual,
+					0, new Date(), "Administracion", 0);
 			admin.setUsuario(usuario);
 			admin.setClave(clave);
 			admin.setEsAdmin(true);
@@ -1171,7 +1238,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Los contratos viven dentro de su cliente: el id siguiente se calcula con el mayor existente
+	// Los contratos viven dentro de su cliente: el id siguiente se calcula con el
+	// mayor existente
 	private String generarIdContrato() {
 		return conLectura(() -> {
 			int mayor = 0;
@@ -1310,7 +1378,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Devuelve los servicios que un cliente tiene contratados (contratos activos, sin repetir).
+	// Devuelve los servicios que un cliente tiene contratados (contratos activos,
+	// sin repetir).
 	public ArrayList<Servicio> obtenerServiciosCliente(String identificador) {
 		return conLectura(() -> {
 			ArrayList<Servicio> servicios = new ArrayList<>();
@@ -1329,7 +1398,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Modifica el plan, el comercial y el dia de corte de un contrato que no este cancelado.
+	// Modifica el plan, el comercial y el dia de corte de un contrato que no este
+	// cancelado.
 	// El cargo mensual solo se recalcula si el plan cambia.
 	public boolean modificarContrato(String idContrato, String codigoPlan, String identificadorComercial,
 			int diaCorte) {
@@ -1388,7 +1458,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Reactiva un contrato suspendido, siempre que el cliente siga activo y no tenga facturas vencidas.
+	// Reactiva un contrato suspendido, siempre que el cliente siga activo y no
+	// tenga facturas vencidas.
 	public boolean reactivarContrato(String idContrato) {
 		return conEscritura(() -> {
 			Contrato contrato = buscarContrato(idContrato);
@@ -1439,10 +1510,12 @@ public class Altice implements Serializable {
 		});
 	}
 
-	//CRUD Facturas
+	// CRUD Facturas
 
-	// Crea la factura de un contrato activo para el mes que termina en fechaProceso.
-	// Devuelve null si el contrato no se puede facturar o si ese periodo ya fue facturado.
+	// Crea la factura de un contrato activo para el mes que termina en
+	// fechaProceso.
+	// Devuelve null si el contrato no se puede facturar o si ese periodo ya fue
+	// facturado.
 	public Factura facturarContrato(String idContrato, Date fechaProceso, int diasVencimiento) {
 		return conEscritura(() -> {
 			Contrato contrato = buscarContrato(idContrato);
@@ -1559,7 +1632,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Facturas emitidas entre dos fechas (ambas incluidas). Sirve para los reportes por periodo.
+	// Facturas emitidas entre dos fechas (ambas incluidas). Sirve para los reportes
+	// por periodo.
 	public ArrayList<Factura> obtenerFacturasPorPeriodo(Date desde, Date hasta) {
 		return conLectura(() -> {
 			ArrayList<Factura> resultado = new ArrayList<>();
@@ -1598,7 +1672,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Marca una factura como pagada (no se puede pagar una factura anulada ni pagar dos veces).
+	// Marca una factura como pagada (no se puede pagar una factura anulada ni pagar
+	// dos veces).
 	public boolean registrarPagoFactura(String codigo) {
 		return conEscritura(() -> {
 			Factura factura = buscarFactura(codigo);
@@ -1612,7 +1687,8 @@ public class Altice implements Serializable {
 		});
 	}
 
-	// Cambia la fecha de vencimiento y el descuento de una factura que siga pendiente.
+	// Cambia la fecha de vencimiento y el descuento de una factura que siga
+	// pendiente.
 	// El subtotal no cambia: solo se recalculan el ITBIS y el total.
 	public boolean modificarFactura(String codigo, Date nuevoVencimiento, float descuento) {
 		return conEscritura(() -> {
